@@ -17,12 +17,18 @@ import (
 var version = "dev"
 
 func main() {
+	showVersion := flag.Bool("version", false, "print version and exit")
 	nodes := flag.Int("nodes", 1, "number of nodes (partition of grid, max 16)")
 	w := flag.Int("w", 40, "grid width")
 	h := flag.Int("h", 15, "grid height")
 	seed := flag.Int64("seed", 1, "RNG seed for initial grid layout")
 	tickMs := flag.Int("tick-ms", command.DefaultTickMS, "simulation tick interval in milliseconds")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version)
+		return
+	}
 
 	c, initLogs := state.NewCluster(*w, *h, *nodes, *seed)
 	rt := &command.Runtime{Paused: false, GoLPaused: false, TickMS: *tickMs}

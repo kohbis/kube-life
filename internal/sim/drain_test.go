@@ -69,7 +69,7 @@ func TestDrainNodeRespectsNoScheduleOnTargets(t *testing.T) {
 		c.Grid.Cells[i] = state.Dead
 		c.Grid.Rev[i] = -1
 	}
-	var src int = -1
+	var src = -1
 	for i, owner := range c.CellOwner {
 		if owner == 0 {
 			src = i
@@ -105,7 +105,7 @@ func TestDrainNodeRespectsNoScheduleOnTargets(t *testing.T) {
 func TestCanSpawnAtCordonedBlocks(t *testing.T) {
 	c, _ := state.NewCluster(4, 4, 2, 1)
 	// pick a dead cell owned by node 0
-	var idx int = -1
+	var idx = -1
 	for i, owner := range c.CellOwner {
 		if owner == 0 {
 			c.Grid.Cells[i] = state.Dead

@@ -10,7 +10,7 @@ import (
 func TestCanSpawnAt_NoExecuteBlocks(t *testing.T) {
 	c, _ := state.NewCluster(4, 4, 2, 1)
 	// pick a cell owned by node 0
-	var idx int = -1
+	var idx = -1
 	for i, owner := range c.CellOwner {
 		if owner == 0 {
 			idx = i

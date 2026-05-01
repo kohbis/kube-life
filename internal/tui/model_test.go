@@ -15,7 +15,7 @@ func TestDrainBlockedDoesNotMarkDone(t *testing.T) {
 		c.Grid.Cells[i] = state.Dead
 		c.Grid.Rev[i] = -1
 	}
-	var src int = -1
+	var src = -1
 	for i, owner := range c.CellOwner {
 		if owner == 0 {
 			src = i
