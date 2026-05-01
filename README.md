@@ -6,7 +6,7 @@ This is not a faithful Kubernetes simulator. It is a visual metaphor: Game of Li
 
 ## Demo
 
-[kube-life demo](docs/assets/kube-life.mp4)
+![kube-life](docs/assets/kube-life.gif)
 
 ## Quick start
 
