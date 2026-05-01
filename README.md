@@ -10,7 +10,7 @@ This is not a faithful Kubernetes simulator. It is a visual metaphor: Game of Li
 
 ## Quick start
 
-Requires **Go 1.22+**.
+Requires **Go 1.26+**.
 
 ```bash
 go build -o kube-life ./cmd/kube-life
@@ -96,7 +96,7 @@ Deployment reconcile does not replace Game of Life. It corrects the world after 
 
 ## Build
 
-Requires **Go 1.22+**.
+Requires **Go 1.26+**.
 
 ```bash
 go build -o kube-life ./cmd/kube-life
