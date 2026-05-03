@@ -366,13 +366,29 @@ func (m *Model) View() string {
 	if maxW <= 0 {
 		maxW = 80
 	}
+	var b strings.Builder
+	b.WriteString(m.renderGrid(maxW))
+	b.WriteString(m.renderStatusLines(maxW))
+	for _, line := range RenderNodeTiles(m.cluster, maxW) {
+		b.WriteString(line)
+		b.WriteByte('\n')
+	}
+	b.WriteByte('\n')
+	b.WriteString(m.renderDeployment(maxW))
+	b.WriteString(m.renderCommandFeedback(maxW))
+	b.WriteString(m.renderInput(maxW))
+	return b.String()
+}
+
+// effectiveCols returns the grid column count actually rendered for the given
+// terminal width. The grid uses a 1-char separator between cells (~2*cols-1),
+// so cols may be clamped below g.Width on narrow terminals.
+func (m *Model) effectiveCols(maxW int) int {
 	g := m.cluster.Grid
 	maxCols := maxW - 1
 	if maxCols < 8 {
 		maxCols = 8
 	}
-	// Grid rendering adds a 1-char separator between cells to make node boundaries visible:
-	// width ~= 2*cols - 1, so clamp cols accordingly.
 	cols := g.Width
 	if cols > (maxCols+1)/2 {
 		cols = (maxCols + 1) / 2
@@ -380,7 +396,12 @@ func (m *Model) View() string {
 	if cols < 1 {
 		cols = 1
 	}
+	return cols
+}
 
+func (m *Model) renderGrid(maxW int) string {
+	g := m.cluster.Grid
+	cols := m.effectiveCols(maxW)
 	var b strings.Builder
 	for y := 0; y < g.Height; y++ {
 		if y > 0 {
@@ -445,7 +466,13 @@ func (m *Model) View() string {
 		b.WriteByte('\n')
 	}
 	b.WriteByte('\n')
+	return b.String()
+}
 
+func (m *Model) renderStatusLines(maxW int) string {
+	g := m.cluster.Grid
+	cols := m.effectiveCols(maxW)
+	var b strings.Builder
 	golLine := "GoL ticks=" + itoa(m.golTicks)
 	if m.rt != nil && m.rt.GoLPaused {
 		golLine += " (paused)"
@@ -470,13 +497,11 @@ func (m *Model) View() string {
 	b.WriteString(truncateLine("Status: "+ds, maxW))
 	b.WriteByte('\n')
 	b.WriteByte('\n')
+	return b.String()
+}
 
-	for _, line := range RenderNodeTiles(m.cluster, maxW) {
-		b.WriteString(line)
-		b.WriteByte('\n')
-	}
-	b.WriteByte('\n')
-
+func (m *Model) renderDeployment(maxW int) string {
+	var b strings.Builder
 	img := m.cluster.Deploy.Image
 	wl := fmt.Sprintf("workload  image=%s cpu=%s maxPods=%d (display only)", img, workloadCPU, m.cluster.MaxPods())
 	b.WriteString(truncateLine(wl, maxW))
@@ -520,7 +545,11 @@ func (m *Model) View() string {
 	}
 	b.WriteByte('\n')
 	b.WriteByte('\n')
+	return b.String()
+}
 
+func (m *Model) renderCommandFeedback(maxW int) string {
+	var b strings.Builder
 	b.WriteString("----------\n")
 	b.WriteString(truncateLine("> "+m.lastCmd, maxW))
 	b.WriteByte('\n')
@@ -542,6 +571,11 @@ func (m *Model) View() string {
 		}
 	}
 	b.WriteByte('\n')
+	return b.String()
+}
+
+func (m *Model) renderInput(maxW int) string {
+	var b strings.Builder
 	b.WriteString("> ")
 	// Truncate the rendered input (keep tail) so narrow terminals don't overflow.
 	avail := maxW - 2 // for "> "
