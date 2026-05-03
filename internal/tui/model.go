@@ -434,7 +434,7 @@ func (m *Model) View() string {
 			}
 			if x < cols-1 {
 				sep := byte(' ')
-				if idx+1 < len(m.cluster.CellOwner) && idx < len(m.cluster.CellOwner) {
+				if idx+1 < len(m.cluster.CellOwner) {
 					if m.cluster.CellOwner[idx] != m.cluster.CellOwner[idx+1] {
 						sep = '|'
 					}

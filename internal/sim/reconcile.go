@@ -28,6 +28,9 @@ func EffectiveDesired(c *state.Cluster) int {
 	return d
 }
 
+// maxScaleUpAttempts returns the upper bound on random cell-pick retries
+// during scale-up. Proportional to grid size with a floor of 100, so a
+// nearly full grid still terminates instead of looping indefinitely.
 func maxScaleUpAttempts(total int) int {
 	k := 4 * total
 	if k < 100 {
