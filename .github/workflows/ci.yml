@@ -24,6 +24,11 @@ jobs:
     - name: Vet
       run: go vet ./...
 
+    - name: Tidy check
+      run: |
+        go mod tidy
+        git diff --exit-code go.mod go.sum
+
     - name: Test
       run: go test ./...
 
