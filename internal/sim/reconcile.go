@@ -8,8 +8,14 @@ import (
 	"kube-life/internal/state"
 )
 
-// DeploymentControlCycle is the number of sim ticks per reconcile cadence:
-// phase 0 = idle (no controller mutations), 1 = observe (log only), 2 = apply (rollout + scale).
+// Deployment controller phases within one DeploymentControlCycle.
+const (
+	PhaseIdle    = 0 // no controller mutations
+	PhaseObserve = 1 // log desired vs actual
+	PhaseApply   = 2 // run rollout + scale
+)
+
+// DeploymentControlCycle is the number of sim ticks per reconcile cadence.
 const DeploymentControlCycle = 3
 
 // EffectiveDesired is min(Deployment.Replicas, MaxPods) while Deployment is enabled.
@@ -106,6 +112,7 @@ func canReplaceOnNode(n *state.Node) bool {
 
 // rolloutReplaceStep performs in-place revision swaps (old->new) to make rollout look like a replacement.
 // This keeps the total alive count stable and avoids "kill then random spawn" visuals.
+// rng must be non-nil.
 func rolloutReplaceStep(c *state.Cluster, oldRev int, newRev int, rng *rand.Rand) (replaced bool) {
 	if c == nil || c.Grid == nil || oldRev <= 0 || newRev <= 0 {
 		return false
@@ -134,9 +141,6 @@ func rolloutReplaceStep(c *state.Cluster, oldRev int, newRev int, rng *rand.Rand
 	if len(cands) == 0 {
 		return false
 	}
-	if rng == nil {
-		rng = rand.New(rand.NewSource(1))
-	}
 	idx := cands[rng.Intn(len(cands))]
 	// In-place "replace": keep cell alive, swap revision tag.
 	c.Grid.Rev[idx] = newRev
@@ -147,6 +151,7 @@ func rolloutReplaceStep(c *state.Cluster, oldRev int, newRev int, rng *rand.Rand
 }
 
 // reconcileOneRS scales one ReplicaSet toward rs.Desired for its revision.
+// rng must be non-nil.
 func reconcileOneRS(c *state.Cluster, rs *state.ReplicaSet, rng *rand.Rand) []string {
 	var logs []string
 	if c == nil || c.Grid == nil || rs == nil || !rs.Enabled {
@@ -210,6 +215,7 @@ func reconcileOneRS(c *state.Cluster, rs *state.ReplicaSet, rng *rand.Rand) []st
 }
 
 // Reconcile runs deployment rollout step (if any) and reconciles all ReplicaSets.
+// rng must be non-nil.
 func Reconcile(c *state.Cluster, rng *rand.Rand) []string {
 	var logs []string
 	if c == nil || !c.Deploy.Enabled || c.Grid == nil {
@@ -272,13 +278,14 @@ func ReconcileObserve(c *state.Cluster) []string {
 	return []string{b.String()}
 }
 
-// ReconcileForPhase runs one step of the deployment controller for the given phase (use phase % DeploymentControlCycle).
-// Phase 0: no-op. Phase 1: observe only. Phase 2: full Reconcile (rollout + scale).
+// ReconcileForPhase runs one step of the deployment controller for the given
+// phase (caller passes a raw tick; this function takes phase % DeploymentControlCycle).
+// rng must be non-nil.
 func ReconcileForPhase(c *state.Cluster, rng *rand.Rand, phase int) []string {
 	switch phase % DeploymentControlCycle {
-	case 0:
+	case PhaseIdle:
 		return nil
-	case 1:
+	case PhaseObserve:
 		return ReconcileObserve(c)
 	default:
 		return Reconcile(c, rng)
