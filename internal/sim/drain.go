@@ -29,8 +29,9 @@ func DrainList(c *state.Cluster, nodeID int) []int {
 
 // DrainStep moves at most one pod (alive cell) from srcIdx (owned by nodeID) to another node.
 // Returns moved=true if a move happened; blocked=true if the pod couldn't be moved this step.
+// rng must be non-nil.
 func DrainStep(c *state.Cluster, rng *rand.Rand, nodeID int, srcIdx int) (moved bool, blocked bool) {
-	if c == nil || c.Grid == nil || rng == nil {
+	if c == nil || c.Grid == nil {
 		return false, true
 	}
 	if srcIdx < 0 || srcIdx >= len(c.Grid.Cells) || c.Grid.Cells[srcIdx] != state.Alive {
